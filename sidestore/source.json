@@ -1,0 +1,26 @@
+{
+  "name": "Offload",
+  "identifier": "me.eamonmurphy.offload.source",
+  "subtitle": "Builds of Offload from main.",
+  "iconURL": "https://raw.githubusercontent.com/eamonflanaganmurphy/offload/main/Offload/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+  "website": "https://github.com/eamonflanaganmurphy/offload",
+  "apps": [
+    {
+      "name": "Offload",
+      "bundleIdentifier": "me.eamonmurphy.offload",
+      "developerName": "Eamon Murphy",
+      "subtitle": "Camera card straight to Immich.",
+      "localizedDescription": "Offload uploads photos and videos from an SD card plugged into the iPhone straight to Immich, without putting them in the photo library. It shows which are already in Immich, lets you pick what to send, and keeps uploading with the phone locked.",
+      "iconURL": "https://raw.githubusercontent.com/eamonflanaganmurphy/offload/main/Offload/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+      "category": "photo-video",
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {
+          "NSLocalNetworkUsageDescription": "Offload uploads to your Immich server, which may be on your local network."
+        }
+      },
+      "versions": []
+    }
+  ],
+  "news": []
+}

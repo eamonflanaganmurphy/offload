@@ -1,0 +1,92 @@
+name: Build
+
+# Runs OffloadCore's tests on macOS and builds an unsigned Offload.ipa, so a
+# broken build shows up here rather than in Xcode on the Mac. Good builds are
+# released for SideStore (see sidestore/source.json).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Xcode 26 (iOS 26 SDK), for the current look, as Reel uses.
+    runs-on: macos-26
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: .spm
+          key: spm-${{ hashFiles('project.yml', 'Packages/OffloadCore/Package.swift') }}
+
+      - name: OffloadCore tests
+        working-directory: Packages/OffloadCore
+        run: |
+          set -o pipefail
+          swift test 2>&1 | tee ../../test.log | tail -5
+
+      - name: Generate project
+        if: success() || failure()
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Build app
+        if: success() || failure()
+        run: |
+          set -o pipefail
+          xcodebuild -version | tee build.log
+          # Each build gets its own version (0.1.<run>) so SideStore sees it as an update.
+          BASE=$(sed -n 's/^ *MARKETING_VERSION: "\(.*\)"/\1/p' project.yml)
+          echo "VERSION=$BASE.${{ github.run_number }}" >> "$GITHUB_ENV"
+          ./scripts/build-ipa.sh \
+            MARKETING_VERSION="$BASE.${{ github.run_number }}" \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            2>&1 | tee -a build.log | grep -E 'error:|(BUILD|ARCHIVE) (SUCCEEDED|FAILED)|^Built '
+
+      # Each good build of main becomes a release holding Offload.ipa and a
+      # SideStore source listing it. SideStore follows
+      # releases/latest/download/source.json, so it always sees the newest.
+      - name: Release for SideStore
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=build-${{ github.run_number }}
+          URL=https://github.com/${{ github.repository }}/releases/download/$TAG/Offload.ipa
+          NOTES=$(git log -1 --format=%s)
+          MIN_OS=$(sed -n 's/^ *iOS: "\(.*\)"/\1/p' project.yml)
+          DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          SIZE=$(stat -f%z build/Offload.ipa)
+          # The legacy top-level fields are for older SideStore releases.
+          jq --arg v "$VERSION" --arg b "${{ github.run_number }}" --arg d "$DATE" --arg u "$URL" \
+             --argjson s "$SIZE" --arg n "$NOTES" --arg os "$MIN_OS" '
+            .apps[0] += {version: $v, versionDate: $d, downloadURL: $u, size: $s, versionDescription: $n}
+            | .apps[0].versions = [{version: $v, buildVersion: $b, date: $d, downloadURL: $u,
+                                    size: $s, localizedDescription: $n, minOSVersion: $os}]
+          ' sidestore/source.json > build/source.json
+          gh release create "$TAG" build/Offload.ipa build/source.json \
+            --target "$GITHUB_SHA" --title "Offload $VERSION" --notes "$NOTES" --latest
+          # Keep the five newest builds.
+          gh release list --limit 100 --json tagName --jq '.[].tagName' | grep '^build-' | tail -n +6 |
+            while read -r old; do gh release delete "$old" --cleanup-tag --yes; done
+
+      # The logs go to a ci-logs branch as plain files, readable with git
+      # alone, for tooling that can't reach the Actions API.
+      - name: Publish logs
+        if: always()
+        run: |
+          mkdir -p /tmp/ci-logs
+          grep -E 'error:|warning:.*/Offload/|(BUILD|ARCHIVE) (SUCCEEDED|FAILED)' build.log > /tmp/ci-logs/summary.txt || true
+          cp build.log test.log /tmp/ci-logs/ 2>/dev/null || true
+          cd /tmp/ci-logs
+          git init -q -b ci-logs
+          git add -A
+          git -c user.name=ci -c user.email=ci@localhost commit -qm "${GITHUB_SHA::7} ${{ job.status }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-logs
