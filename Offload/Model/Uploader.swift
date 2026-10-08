@@ -1,4 +1,5 @@
 import Foundation
+import Network
 import Observation
 import OffloadCore
 import UIKit
@@ -55,6 +56,8 @@ final class Uploader {
     private(set) var paused: String?
     /// Bumped a few times a second while bytes are going out, for progress views.
     private(set) var tick = 0
+    /// There's a way out that isn't mobile data: Wi-Fi, or a wired connection.
+    private(set) var onWiFi = true
 
     /// Called by the app delegate when iOS wakes Offload for the session.
     @ObservationIgnored var backgroundEventsDone: (() -> Void)?
@@ -72,6 +75,7 @@ final class Uploader {
     @ObservationIgnored private var flushingAlbums = false
     @ObservationIgnored private var backgroundTask = UIBackgroundTaskIdentifier.invalid
     @ObservationIgnored private var restored = false
+    @ObservationIgnored private let monitor = NWPathMonitor(prohibitedInterfaceTypes: [.cellular])
 
     private static var jobsFile: URL { Support.dir.appendingPathComponent("jobs.json") }
 
@@ -84,11 +88,22 @@ final class Uploader {
         let queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         session = URLSession(configuration: config, delegate: SessionRelay(), delegateQueue: queue)
+        monitor.pathUpdateHandler = { path in
+            let up = path.status == .satisfied
+            Task { @MainActor in Uploader.shared.onWiFi = up }
+        }
+        monitor.start(queue: DispatchQueue(label: "me.eamonmurphy.offload.network"))
     }
 
     // MARK: - What the views read
 
     var isRunning: Bool { jobs.contains { $0.isActive } }
+
+    /// Wi-Fi Only is on and there's no Wi-Fi: the session holds the uploads
+    /// until there is.
+    var waitingForWiFi: Bool {
+        AppSettings.shared.wifiOnly && !onWiFi && jobs.contains { $0.state == .uploading }
+    }
 
     func job(cardID: String, rel: String) -> UploadJob? {
         guard let i = byFile[cardID + "|" + rel], i < jobs.count else { return nil }
@@ -226,6 +241,21 @@ final class Uploader {
         pump()
     }
 
+    /// Wi-Fi Only was switched. A request can't be changed once it's handed to
+    /// the session, so uploads already there start again under the new rule.
+    func networkRuleChanged() {
+        let ids = jobs.filter { $0.state == .uploading }.map(\.id)
+        guard !ids.isEmpty else { return }
+        let restart = Set(ids.map(\.uuidString))
+        session.getAllTasks { tasks in
+            for t in tasks where restart.contains(t.taskDescription ?? "") { t.cancel() }
+            Task { @MainActor in
+                let u = Uploader.shared
+                for id in ids where u.jobs[safe: u.index[id]]?.state == .uploading { u.startUpload(id) }
+            }
+        }
+    }
+
     // MARK: - The queue
 
     private func pump() {
@@ -298,7 +328,10 @@ final class Uploader {
             set(id) { $0.state = .failed; $0.message = "Set up the server in Settings." }
             return
         }
-        let task = session.uploadTask(with: client.uploadRequest(contentType: type, sha1: sha), fromFile: j.bodyURL)
+        var request = client.uploadRequest(contentType: type, sha1: sha)
+        // On mobile data the session waits for Wi-Fi rather than failing.
+        request.allowsCellularAccess = !AppSettings.shared.wifiOnly
+        let task = session.uploadTask(with: request, fromFile: j.bodyURL)
         task.taskDescription = id.uuidString
         task.countOfBytesClientExpectsToSend = j.bodySize
         task.countOfBytesClientExpectsToReceive = 200

@@ -36,7 +36,8 @@ final class CardStore {
     private(set) var cardName = ""
     private(set) var cardID = ""
     private(set) var files: [CardFile] = []
-    private(set) var albumName: String?
+    /// "SD import <dates>", as the home pipeline would name the card's album.
+    private(set) var datedAlbum: String?
     private(set) var types = MediaTypes.fallback
     private(set) var scanning = false
     private(set) var checking = false
@@ -100,7 +101,7 @@ final class CardStore {
         check = [:]
         hashes = [:]
         selection = []
-        albumName = nil
+        datedAlbum = nil
         error = nil
         checkedCount = 0
     }
@@ -124,7 +125,7 @@ final class CardStore {
             }.value
             guard root == self.root else { return }
             files = found
-            albumName = AlbumName.forCard(found)
+            datedAlbum = AlbumName.forCard(found)
             hashes = [:]
             for f in found {
                 if let h = hashCache[f.cacheKey] { hashes[f.rel] = h }
@@ -227,6 +228,9 @@ final class CardStore {
         return (n, i)
     }
 
+    /// Where an upload from this card goes now, if anywhere.
+    var albumName: String? { AppSettings.shared.album(dated: datedAlbum) }
+
     var totalBytes: Int64 { files.reduce(0) { $0 + $1.size } }
 
     func sections(_ filter: Filter) -> [DaySection] {
@@ -269,7 +273,7 @@ final class CardStore {
         guard let root else { return }
         let chosen = selection.isEmpty ? uploadable : files.filter { selection.contains($0.rel) && state(of: $0).canUpload }
         guard !chosen.isEmpty else { return }
-        let album = AppSettings.shared.addToAlbum ? albumName : nil
+        let album = albumName
         // Oldest first, as the camera took them.
         let ordered = chosen.sorted { ($0.modified, $0.rel) < ($1.modified, $1.rel) }
         Uploader.shared.enqueue(ordered, cardID: cardID, root: root, album: album, hashes: hashes)

@@ -45,11 +45,27 @@ struct SettingsView: View {
 
                 Section {
                     Toggle("Add to an Album", isOn: $settings.addToAlbum)
+                    if settings.addToAlbum {
+                        LabeledContent("Album Name") {
+                            TextField("Album Name", text: $settings.albumName, prompt: Text("The Card's Dates"))
+                                .multilineTextAlignment(.trailing)
+                                .autocorrectionDisabled()
+                                .submitLabel(.done)
+                        }
+                    }
+                } header: {
+                    Text("Album")
+                } footer: {
+                    Text("Leave the name blank and the album is named after the card's dates, \"SD import 2026-09-28\", the same as the card reader at home uses, so a card started here and finished there ends up in one album. Type a name to put every card in that album instead; it's made in Immich if there isn't one. Photos from the card's trash don't go in an album.")
+                }
+
+                Section {
+                    Toggle("Wi-Fi Only", isOn: $settings.wifiOnly)
                     Toggle("Keep the Screen On", isOn: $settings.keepAwake)
                 } header: {
                     Text("Uploading")
                 } footer: {
-                    Text("The album is named after the card's dates, \"SD import 2026-09-28\", the same as the card reader at home uses, so a card started here and finished there ends up in one album. Photos from the card's trash don't go in it.\n\nUploads carry on with the phone locked, but they go fastest with Offload open, and the screen kept on lets it read ahead from the card.")
+                    Text("With Wi-Fi Only on, uploads wait for Wi-Fi rather than use mobile data, and carry on by themselves when it's back. Checking what Immich already has still works on mobile data, as it only sends a few bytes a photo.\n\nUploads carry on with the phone locked, but they go fastest with Offload open, and the screen kept on lets it read ahead from the card.")
                 }
 
                 Section {

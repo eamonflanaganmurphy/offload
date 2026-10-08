@@ -8,7 +8,6 @@ import SwiftUI
 struct CardView: View {
     @Environment(CardStore.self) private var card
     @Environment(Uploader.self) private var uploader
-    @Environment(AppSettings.self) private var settings
     @State private var filter = CardStore.Filter.all
     @State private var preview: URL?
 
@@ -67,7 +66,7 @@ struct CardView: View {
                 Text("\(counts.new) not in Immich · \(counts.inImmich) already there")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
-            if settings.addToAlbum, let album = card.albumName {
+            if let album = card.albumName {
                 Label(album, systemImage: "rectangle.stack")
                     .font(.footnote).foregroundStyle(.secondary)
             }

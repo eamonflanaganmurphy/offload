@@ -19,6 +19,17 @@ final class AppSettings {
     var addToAlbum: Bool {
         didSet { UserDefaults.standard.set(addToAlbum, forKey: "addToAlbum") }
     }
+    /// The album to use instead; blank names it after the card's dates.
+    var albumName: String {
+        didSet { UserDefaults.standard.set(albumName, forKey: "albumName") }
+    }
+    /// Only send uploads over Wi-Fi. On mobile data they wait, queued.
+    var wifiOnly: Bool {
+        didSet {
+            UserDefaults.standard.set(wifiOnly, forKey: "wifiOnly")
+            if wifiOnly != oldValue { Uploader.shared.networkRuleChanged() }
+        }
+    }
     var keepAwake: Bool {
         didSet { UserDefaults.standard.set(keepAwake, forKey: "keepAwake") }
     }
@@ -31,6 +42,8 @@ final class AppSettings {
         server = d.string(forKey: "server") ?? "https://photos.eamonmurphy.me"
         apiKey = Keychain.get("apiKey") ?? ""
         addToAlbum = d.object(forKey: "addToAlbum") as? Bool ?? true
+        albumName = d.string(forKey: "albumName") ?? ""
+        wifiOnly = d.object(forKey: "wifiOnly") as? Bool ?? false
         keepAwake = d.object(forKey: "keepAwake") as? Bool ?? true
     }
 
@@ -40,6 +53,14 @@ final class AppSettings {
 
     func client() throws -> ImmichClient {
         try ImmichClient(server: server, apiKey: apiKey)
+    }
+
+    /// The album a card's shoot goes into: the one named in Settings, or the
+    /// card's dates one. nil with albums turned off.
+    func album(dated: String?) -> String? {
+        guard addToAlbum else { return nil }
+        let name = albumName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? dated : name
     }
 
     /// The last media types Immich reported, or the built-in list.

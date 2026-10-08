@@ -23,6 +23,9 @@ struct UploadBar: View {
                 ProgressView(value: Double(t.doneBytes), total: Double(max(t.bytes, 1)))
                 if let paused = uploader.paused {
                     Label(paused, systemImage: "pause.circle").font(.caption).foregroundStyle(.orange)
+                } else if uploader.waitingForWiFi {
+                    Label("Waiting for Wi-Fi. Turn off Wi-Fi Only in Settings to use mobile data.", systemImage: "wifi.slash")
+                        .font(.caption).foregroundStyle(.orange)
                 } else if let name = t.reading {
                     Text("Reading \(name) from the card…").font(.caption).foregroundStyle(.secondary)
                 } else {

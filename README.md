@@ -18,6 +18,11 @@ An iPhone app that uploads photos and videos from a camera's SD card, plugged in
   `SD import 2026-09-28 to 2026-10-02`. That's the name the homelab's `sdcard-import` pipeline gives it, so a card
   started on the phone and finished at home ends up in one album. Files in the card's `.Trashes` (photos
   deleted on a Mac but never emptied) are shown separately, aren't in Upload New, and never go in the album.
+  To put every card in one album of your own instead, type its name under **Album Name** in Settings (it's made in
+  Immich if there isn't one); clear the name to go back to the dates. **Add to an Album** turns albums off.
+- **Wi-Fi only:** turn on **Wi-Fi Only** in Settings and uploads wait for Wi-Fi instead of using mobile data,
+  then carry on by themselves, in the background too, once there's Wi-Fi again. Uploads already under way when
+  it's switched start again under the new rule.
 - **Nothing is deleted:** Offload only reads the card. Wipe it with the camera, or put it in the card reader at
   home, which backs it up and checks it before it deletes anything.
 
