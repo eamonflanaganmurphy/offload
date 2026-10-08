@@ -1,0 +1,65 @@
+Building for debugging...
+[0/12] /Users/runner/work/offload/offload/Packages/OffloadCore/.build/arm64-apple-macosx/debug/OffloadCorePackageTests.derived/runner.swift
+[0/12] Write sources
+[3/12] Write offloadcheck-entitlement.plist
+[4/12] Write sources
+[6/12] Write swift-version-7974D3F7F03D5E95.txt
+[8/17] Compiling OffloadCore CardFile.swift
+[9/17] Compiling OffloadCore CardScanner.swift
+[10/17] Compiling OffloadCore Hashing.swift
+[11/17] Compiling OffloadCore ImmichClient.swift
+[12/17] Emitting module OffloadCore
+[13/19] Compiling OffloadCore MediaTypes.swift
+[14/19] Compiling OffloadCore Multipart.swift
+[15/23] Compiling offloadcheck main.swift
+[16/23] Emitting module offloadcheck
+[16/23] Write Objects.LinkFileList
+[17/23] Linking offloadcheck
+[18/23] Applying offloadcheck
+[20/23] Emitting module OffloadCoreTests
+[21/23] Compiling OffloadCoreTests OffloadCoreTests.swift
+[22/25] Compiling OffloadCorePackageTests runner.swift
+[23/25] Emitting module OffloadCorePackageTests
+[23/25] Write Objects.LinkFileList
+[24/25] Linking OffloadCorePackageTests
+Build complete! (29.97s)
+Test Suite 'All tests' started at 2026-10-08 03:35:31.825.
+Test Suite 'OffloadCorePackageTests.xctest' started at 2026-10-08 03:35:31.827.
+Test Suite 'ClientTests' started at 2026-10-08 03:35:31.827.
+Test Case '-[OffloadCoreTests.ClientTests testParsesUploadAnswers]' started.
+Test Case '-[OffloadCoreTests.ClientTests testParsesUploadAnswers]' passed (0.003 seconds).
+Test Case '-[OffloadCoreTests.ClientTests testServerAddresses]' started.
+Test Case '-[OffloadCoreTests.ClientTests testServerAddresses]' passed (0.000 seconds).
+Test Suite 'ClientTests' passed at 2026-10-08 03:35:31.831.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'HashingTests' started at 2026-10-08 03:35:31.831.
+Test Case '-[OffloadCoreTests.HashingTests testChunkedEqualsWhole]' started.
+Test Case '-[OffloadCoreTests.HashingTests testChunkedEqualsWhole]' passed (0.025 seconds).
+Test Case '-[OffloadCoreTests.HashingTests testHashCacheRoundTrip]' started.
+Test Case '-[OffloadCoreTests.HashingTests testHashCacheRoundTrip]' passed (0.002 seconds).
+Test Case '-[OffloadCoreTests.HashingTests testKnownVectors]' started.
+Test Case '-[OffloadCoreTests.HashingTests testKnownVectors]' passed (0.000 seconds).
+Test Suite 'HashingTests' passed at 2026-10-08 03:35:31.859.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.028 (0.028) seconds
+Test Suite 'MultipartTests' started at 2026-10-08 03:35:31.859.
+Test Case '-[OffloadCoreTests.MultipartTests testBodyWrapsTheFileAndHashesOnlyTheFile]' started.
+Test Case '-[OffloadCoreTests.MultipartTests testBodyWrapsTheFileAndHashesOnlyTheFile]' passed (1.111 seconds).
+Test Suite 'MultipartTests' passed at 2026-10-08 03:35:32.970.
+	 Executed 1 test, with 0 failures (0 unexpected) in 1.111 (1.111) seconds
+Test Suite 'ScannerTests' started at 2026-10-08 03:35:32.970.
+Test Case '-[OffloadCoreTests.ScannerTests testAlbumNameLeavesOutTheTrash]' started.
+Test Case '-[OffloadCoreTests.ScannerTests testAlbumNameLeavesOutTheTrash]' passed (0.005 seconds).
+Test Case '-[OffloadCoreTests.ScannerTests testFindsMediaAndSkipsJunk]' started.
+Test Case '-[OffloadCoreTests.ScannerTests testFindsMediaAndSkipsJunk]' passed (0.004 seconds).
+Test Case '-[OffloadCoreTests.ScannerTests testMediaTypes]' started.
+Test Case '-[OffloadCoreTests.ScannerTests testMediaTypes]' passed (0.004 seconds).
+Test Suite 'ScannerTests' passed at 2026-10-08 03:35:32.984.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+Test Suite 'OffloadCorePackageTests.xctest' passed at 2026-10-08 03:35:32.984.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 1.155 (1.157) seconds
+Test Suite 'All tests' passed at 2026-10-08 03:35:32.984.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 1.155 (1.159) seconds
+◇ Test run started.
+↳ Testing Library Version: 1902
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
